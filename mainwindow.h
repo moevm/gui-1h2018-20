@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "filedownloader.h"
+#include "riotapi.h"
 
 namespace Ui {
 class MainWindow;
@@ -17,6 +19,17 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    void closeEvent(QCloseEvent *event);
+
+    QPixmap profileIcon;
+    FileDownloader* iconDownloader;
+
+private slots:
+    void openLoginScreen();
+    void loadProfileIcon();
+    void fillMatches(const QVector<MatchInfo>&);
+signals:
+    void allContentFinished();
 };
 
 #endif // MAINWINDOW_H

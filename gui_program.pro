@@ -4,9 +4,12 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui \
+            qml \
+            network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+include(qtrest-master/com_github_kafeg_qtrest.pri)
 
 TARGET = gui_program
 TEMPLATE = app
@@ -25,10 +28,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+    riotapiloginscreen.cpp \
+    riotapi.cpp \
+    filedownloader.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    riotapiloginscreen.h \
+    riotapi.h \
+    filedownloader.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    riotapiloginscreen.ui
+
+DISTFILES +=

@@ -17,6 +17,8 @@ public:
 
 private:
     Ui::RiotApiLoginScreen *ui;
+private slots:
+    void verifyInputAndOpenMainWindow();
 };
 
 #endif // RIOTAPILOGINSCREEN_H
