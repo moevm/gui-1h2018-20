@@ -13,7 +13,7 @@ void RiotApi::requestRecentMatches(QString accountId)
 {
     QUrl url = QUrl(baseUrl+"/lol/match/v3/matchlists/by-account/"+accountId+"/recent");
 
-    url.setQuery("api_key=RGAPI-bfc0de7a-58f2-4e1c-a9b6-759bd5a17a2f");
+    url.setQuery("api_key=RGAPI-5f2011b7-e6bc-412f-840a-11c470d4b914");
 
     QNetworkAccessManager* nam = get(url);
     connect(nam, &QNetworkAccessManager::finished, this, &RiotApi::recentMatchesFinished);
@@ -23,7 +23,7 @@ void RiotApi::requestLeagueInfo(QString summonerId)
 {
     QUrl url = QUrl(baseUrl+"/lol/league/v3/positions/by-summoner/"+summonerId);
 
-    url.setQuery("api_key=RGAPI-bfc0de7a-58f2-4e1c-a9b6-759bd5a17a2f");
+    url.setQuery("api_key=RGAPI-5f2011b7-e6bc-412f-840a-11c470d4b914");
 
     QNetworkAccessManager* nam = get(url);
     connect(nam, &QNetworkAccessManager::finished, this, &RiotApi::leagueInfoFinished);
@@ -33,7 +33,7 @@ void RiotApi::requestSummonerInfo(QString summonerName)
 {
     QUrl url = QUrl(baseUrl+"/lol/summoner/v3/summoners/by-name/"+summonerName);
 
-    url.setQuery("api_key=RGAPI-bfc0de7a-58f2-4e1c-a9b6-759bd5a17a2f");
+    url.setQuery("api_key=RGAPI-5f2011b7-e6bc-412f-840a-11c470d4b914");
 
     QNetworkAccessManager* nam = get(url);
     connect(nam, &QNetworkAccessManager::finished, this, &RiotApi::accountInfoFinished);

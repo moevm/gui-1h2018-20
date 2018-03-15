@@ -84,6 +84,7 @@ void MainWindow::closeEvent (QCloseEvent *event)
 
     if (resBtn == QMessageBox::Yes) {
         (new RiotApiLoginScreen())->open();
+        disconnect();
         close();
     } else if (resBtn == QMessageBox::Close) {
         event->accept();
