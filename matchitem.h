@@ -4,19 +4,19 @@
 #include <QWidget>
 
 namespace Ui {
-class matchItem;
+class MatchItem;
 }
 
-class matchItem : public QWidget
+class MatchItem : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit matchItem(QWidget *parent = 0);
-    ~matchItem();
-
+    explicit MatchItem(QWidget *parent = 0);
+    ~MatchItem();
+    MatchItem* date(QString date);
 private:
-    Ui::matchItem *ui;
+    Ui::MatchItem *ui;
 };
 
 #endif // MATCHITEM_H

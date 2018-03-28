@@ -24,6 +24,7 @@ private:
     QPixmap profileIcon;
     FileDownloader* iconDownloader;
 
+    QPixmap roundImage(QPixmap& img);
 private slots:
     void openLoginScreen();
     void loadProfileIcon();

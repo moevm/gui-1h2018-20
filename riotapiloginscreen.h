@@ -17,8 +17,11 @@ public:
 
 private:
     Ui::RiotApiLoginScreen *ui;
+    QString m_sSettingsFile;
 private slots:
     void verifyInputAndOpenMainWindow();
+    void loadSettings();
+    void saveSettings();
 };
 
 #endif // RIOTAPILOGINSCREEN_H

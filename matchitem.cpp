@@ -1,14 +1,20 @@
 #include "matchitem.h"
 #include "ui_matchitem.h"
 
-matchItem::matchItem(QWidget *parent) :
+MatchItem::MatchItem(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::matchItem)
+    ui(new Ui::MatchItem)
 {
     ui->setupUi(this);
 }
 
-matchItem::~matchItem()
+MatchItem::~MatchItem()
 {
     delete ui;
+}
+
+MatchItem* MatchItem::date(QString date)
+{
+    ui->label->setText(date);
+    return this;
 }

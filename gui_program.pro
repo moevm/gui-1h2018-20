@@ -9,7 +9,6 @@ QT       += core gui \
             network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-include(qtrest-master/com_github_kafeg_qtrest.pri)
 
 TARGET = gui_program
 TEMPLATE = app
@@ -31,16 +30,19 @@ SOURCES += \
         mainwindow.cpp \
     riotapiloginscreen.cpp \
     riotapi.cpp \
-    filedownloader.cpp
+    filedownloader.cpp \
+    matchitem.cpp
 
 HEADERS += \
         mainwindow.h \
     riotapiloginscreen.h \
     riotapi.h \
-    filedownloader.h
+    filedownloader.h \
+    matchitem.h
 
 FORMS += \
         mainwindow.ui \
-    riotapiloginscreen.ui
+    riotapiloginscreen.ui \
+    matchitem.ui
 
 DISTFILES +=

@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "riotapiloginscreen.h"
 #include "riotapi.h"
+#include "matchitem.h"
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <iostream>
@@ -47,20 +48,23 @@ void MainWindow::openLoginScreen()
 void MainWindow::loadProfileIcon()
 {
     profileIcon.loadFromData(iconDownloader->downloadedData());
-    QImage imageOut(profileIcon.size(),QImage::Format_ARGB32);
+    profileIcon = roundImage(profileIcon);
+
+    ui->label_2->setPixmap(profileIcon);
+    emit allContentFinished();
+}
+
+QPixmap MainWindow::roundImage(QPixmap& img) {
+    QImage imageOut(img.size(),QImage::Format_ARGB32);
 
     imageOut.fill(Qt::transparent);
     QPainter painter( &imageOut );
     painter.setRenderHints(QPainter::HighQualityAntialiasing);
-    QRegion r(QRect(0, 0, profileIcon.width(), profileIcon.width()),
+    QRegion r(QRect(0, 0, img.width(), img.width()),
               QRegion::Ellipse);
     painter.setClipRegion(r);
-    painter.drawPixmap(0, 0, profileIcon);
-
-    profileIcon = QPixmap::fromImage(imageOut.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-
-    ui->label_2->setPixmap(profileIcon);
-    emit allContentFinished();
+    painter.drawPixmap(0, 0, img);
+    return QPixmap::fromImage(imageOut.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }
 
 void MainWindow::fillMatches(const QVector<MatchInfo>& matches)
@@ -69,8 +73,10 @@ void MainWindow::fillMatches(const QVector<MatchInfo>& matches)
         QDateTime matchTime;
         matchTime.setTime_t(start->timestamp.toLong());
 
-        QLabel* time = new QLabel(matchTime.toString("hh:mm\t-      dd MMM yyyy "));
-        ui->verticalLayout->addWidget(time);
+        QListWidgetItem* item = new QListWidgetItem( ui->listWidget );
+        MatchItem* match = (new MatchItem())->date(matchTime.toString("hh:mm\t    dd MMM yyyy "));
+        item->setSizeHint( match->size() );
+        ui->listWidget->setItemWidget(item, match);
     }
 }
 
