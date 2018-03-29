@@ -56,6 +56,7 @@ private:
     AccountInfo accountInfo;
     LeagueInfo leagueInfo;
     QVector<MatchInfo> matchesInfo;
+    QMap<QString, QString> idToName;
 
     RiotApi();
     RiotApi(const RiotApi& root) = delete;

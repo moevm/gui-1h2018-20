@@ -72,9 +72,15 @@ void MainWindow::fillMatches(const QVector<MatchInfo>& matches)
     for(auto start = matches.begin(); start != matches.end(); start++) {
         QDateTime matchTime;
         matchTime.setTime_t(start->timestamp.toLong());
-
         QListWidgetItem* item = new QListWidgetItem( ui->listWidget );
-        MatchItem* match = (new MatchItem())->date(matchTime.toString("hh:mm\t    dd MMM yyyy "));
+        QString date = matchTime.toString("hh:mm\t    dd MMM yyyy ");
+        MatchItem* match = (new MatchItem())->date(date);
+        FileDownloader* downloader = new FileDownloader(QUrl("http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"+start->champion+".png"));
+        connect(downloader, &FileDownloader::downloaded, [=](){
+            QPixmap icon;
+            icon.loadFromData(downloader->downloadedData());
+            match->icon(icon.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        });
         item->setSizeHint( match->size() );
         ui->listWidget->setItemWidget(item, match);
     }

@@ -7,7 +7,35 @@
 #include <functional>
 
 
-RiotApi::RiotApi() {}
+RiotApi::RiotApi() {
+    QUrl url = QUrl("http://ddragon.leagueoflegends.com/cdn/6.24.1/data/en_US/champion.json");
+    QNetworkAccessManager* nam = get(url);
+    connect(nam, &QNetworkAccessManager::finished, this, [=](QNetworkReply *reply) {
+
+        QTextCodec *codec = QTextCodec::codecForName("utf8");
+        QString rawReply = codec->toUnicode(reply->readAll().data());
+        QJsonObject champions = QJsonDocument::fromJson(rawReply.toUtf8()).object()["data"].toObject();
+        for(QJsonObject::iterator start = champions.begin(); start != champions.end(); start++) {
+            QJsonObject champion = (*start).toObject();
+            idToName.insert(champion["key"].toString(), champion["id"].toString());
+        }
+    });
+}
+
+void RiotApi::setApiKey(const QString &apiKey)
+{
+    riotApi = apiKey;
+}
+
+void RiotApi::replyFinished(QNetworkReply *reply)
+{
+    if (reply->error() == QNetworkReply::NoError) {
+
+    } else {
+        qDebug() << reply->error() << reply->errorString();
+        emit replyError(reply, reply->error(), reply->errorString());
+    }
+}
 
 void RiotApi::requestRecentMatches(QString accountId)
 {
@@ -39,21 +67,6 @@ void RiotApi::requestSummonerInfo(QString summonerName)
 }
 
 const QString RiotApi::getSummonerId() { return accountInfo.summonerId; }
-
-void RiotApi::setApiKey(const QString &apiKey)
-{
-    riotApi = apiKey;
-}
-
-void RiotApi::replyFinished(QNetworkReply *reply)
-{
-    if (reply->error() == QNetworkReply::NoError) {
-
-    } else {
-        qDebug() << reply->error() << reply->errorString();
-        emit replyError(reply, reply->error(), reply->errorString());
-    }
-}
 
 void RiotApi::accountInfoFinished(QNetworkReply *reply)
 {
@@ -115,7 +128,7 @@ void RiotApi::recentMatchesFinished(QNetworkReply *reply)
     for(QJsonArray::iterator start = matchesArray.begin(); start != matchesArray.end(); start++) {
         QJsonObject match = (*start).toObject();
         matchesInfo.append(MatchInfo(
-                               QString::number(match["champion"].toInt()),
+                               idToName[QString::number(match["champion"].toInt())],
                                QString::number(match["timestamp"].toVariant().toLongLong() / 1000),
                                static_cast<QueueType>(match["queue"].toInt())
                            ));

@@ -18,3 +18,9 @@ MatchItem* MatchItem::date(QString date)
     ui->label->setText(date);
     return this;
 }
+
+MatchItem *MatchItem::icon(QPixmap icon)
+{
+    ui->label_2->setPixmap(icon);
+    return this;
+}

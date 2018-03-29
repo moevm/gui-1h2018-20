@@ -15,6 +15,7 @@ public:
     explicit MatchItem(QWidget *parent = 0);
     ~MatchItem();
     MatchItem* date(QString date);
+    MatchItem* icon(QPixmap icon);
 private:
     Ui::MatchItem *ui;
 };
