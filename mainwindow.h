@@ -27,8 +27,7 @@ private:
     QPixmap roundImage(QPixmap& img);
 private slots:
     void openLoginScreen();
-    void loadProfileIcon();
-    void fillMatches(const QVector<MatchInfo>&);
+    void fillMatches(const QVector<MatchInfo*>&);
 signals:
     void allContentFinished();
 };

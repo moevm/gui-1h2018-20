@@ -3,6 +3,7 @@
 # Project created by QtCreator 2018-02-16T00:27:59
 #
 #-------------------------------------------------
+CONFIG += c++14
 
 QT       += core gui \
             qml \
@@ -31,18 +32,21 @@ SOURCES += \
     riotapiloginscreen.cpp \
     riotapi.cpp \
     filedownloader.cpp \
-    matchitem.cpp
+    matchitem.cpp \
+    cachemanager.cpp \
+    rest.cpp
 
 HEADERS += \
         mainwindow.h \
     riotapiloginscreen.h \
     riotapi.h \
     filedownloader.h \
-    matchitem.h
+    matchitem.h \
+    cachemanager.h \
+    infostructs.h \
+    rest.h
 
 FORMS += \
         mainwindow.ui \
     riotapiloginscreen.ui \
     matchitem.ui
-
-DISTFILES +=

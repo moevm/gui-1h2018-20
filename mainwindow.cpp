@@ -3,6 +3,7 @@
 #include "riotapiloginscreen.h"
 #include "riotapi.h"
 #include "matchitem.h"
+#include "cachemanager.h"
 #include <QCloseEvent>
 #include <QMessageBox>
 #include <iostream>
@@ -15,23 +16,35 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    setFixedSize(size());
+    statusBar()->setSizeGripEnabled(false);
     ui->verticalLayout_2->setAlignment(Qt::AlignHCenter);
+
     connect(&RiotApi::Instance(), &RiotApi::summonerNameUpdated, ui->label_3, &QLabel::setText);
-    connect(&RiotApi::Instance(), &RiotApi::summonerProfileIconIdUpdated, [=](const QString& x){
-        QString url = "http://ddragon.leagueoflegends.com/cdn/8.5.2/img/profileicon/" + x + ".png";
-        qDebug() << url;
-        QUrl imageUrl(url);
-        iconDownloader = new FileDownloader(imageUrl, this);
-        connect(iconDownloader, SIGNAL (downloaded()), this, SLOT (loadProfileIcon()));
+    connect(&RiotApi::Instance(), &RiotApi::summonerProfileIconIdUpdated, [=](const QString& x) {
+        if(CacheManager::Instance().cached(x+".png")) {
+            QPixmap img(CacheManager::Instance().getPath(x+".png"));
+            profileIcon = roundImage(img);
+            ui->label_2->setPixmap(profileIcon);
+            emit allContentFinished();
+        } else {
+            QUrl url("http://ddragon.leagueoflegends.com/cdn/8.5.2/img/profileicon/" + x + ".png");
+            iconDownloader = new FileDownloader(url);
+            connect(iconDownloader, &FileDownloader::downloaded, [=]() {
+                profileIcon.loadFromData(iconDownloader->downloadedData());
+                CacheManager::Instance().cacheImg(x+".png", profileIcon);
+                profileIcon = roundImage(profileIcon);
+                ui->label_2->setPixmap(profileIcon);
+                emit allContentFinished();
+            });
+        }
     });
     connect(&RiotApi::Instance(), &RiotApi::summonerLeagueInfoUpdated, [=](LeagueInfo& info) {
-        ui->label->setText(info.rank + " " + info.tier + "\n" +
+        ui->label->setText(info.tier + " " + info.rank + "\n" +
                            info.leaguePoints + " LP\n" +
-                           "W: " + info.wins + " L: " + info.losses);
+                           "W: " + info.wins + " L: "  + info.losses);
     });
-    connect(&RiotApi::Instance(), &RiotApi::accountIdUpdated, [=](const QString& x) {
-        RiotApi::Instance().requestRecentMatches(x);
-    });
+    connect(&RiotApi::Instance(), &RiotApi::accountIdUpdated, [=](const QString& x) {RiotApi::Instance().requestRecentMatches(x);});
     connect(&RiotApi::Instance(), &RiotApi::recentMatchesUpdated, this, &MainWindow::fillMatches);
 }
 
@@ -43,15 +56,6 @@ MainWindow::~MainWindow()
 void MainWindow::openLoginScreen()
 {
     (new RiotApiLoginScreen())->open();
-}
-
-void MainWindow::loadProfileIcon()
-{
-    profileIcon.loadFromData(iconDownloader->downloadedData());
-    profileIcon = roundImage(profileIcon);
-
-    ui->label_2->setPixmap(profileIcon);
-    emit allContentFinished();
 }
 
 QPixmap MainWindow::roundImage(QPixmap& img) {
@@ -67,20 +71,35 @@ QPixmap MainWindow::roundImage(QPixmap& img) {
     return QPixmap::fromImage(imageOut.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
 }
 
-void MainWindow::fillMatches(const QVector<MatchInfo>& matches)
+void MainWindow::fillMatches(const QVector<MatchInfo*>& matches)
 {
-    for(auto start = matches.begin(); start != matches.end(); start++) {
+    ui->listWidget->clear();
+    QString summoner = RiotApi::Instance().getNickname();
+    for (auto start = matches.begin(); start != matches.end(); start++) {
         QDateTime matchTime;
-        matchTime.setTime_t(start->timestamp.toLong());
-        QListWidgetItem* item = new QListWidgetItem( ui->listWidget );
-        QString date = matchTime.toString("hh:mm\t    dd MMM yyyy ");
-        MatchItem* match = (new MatchItem())->date(date);
-        FileDownloader* downloader = new FileDownloader(QUrl("http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"+start->champion+".png"));
-        connect(downloader, &FileDownloader::downloaded, [=](){
-            QPixmap icon;
-            icon.loadFromData(downloader->downloadedData());
+        matchTime.setTime_t((*start)->timestamp.toLong());
+        MatchItem* match = (new MatchItem())->date(matchTime.toString("dd MMM yyyy"/* + "\t    hh:mm"*/))
+                                            ->duration((*start)->duration)
+                                            ->kda((*start)->getKills(summoner),
+                                                  (*start)->getDeaths(summoner),
+                                                  (*start)->getAssists(summoner))
+                                            ->gold((*start)->getGold(summoner))
+                                            ->minions((*start)->getMinions(summoner))
+                                            ->win((*start)->isWin(summoner));
+
+        if (CacheManager::Instance().cached((*start)->champion+".png")) {
+            QPixmap icon(CacheManager::Instance().getPath((*start)->champion+".png"));
             match->icon(icon.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        });
+        } else {
+            FileDownloader* downloader = new FileDownloader(QUrl("http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"+(*start)->champion+".png"));
+            connect(downloader, &FileDownloader::downloaded, [=](){
+                QPixmap icon;
+                icon.loadFromData(downloader->downloadedData());
+                CacheManager::Instance().cacheImg((*start)->champion+".png", icon);
+                match->icon(icon.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            });
+        }
+        QListWidgetItem* item = new QListWidgetItem( ui->listWidget );
         item->setSizeHint( match->size() );
         ui->listWidget->setItemWidget(item, match);
     }
@@ -96,7 +115,7 @@ void MainWindow::closeEvent (QCloseEvent *event)
 
     if (resBtn == QMessageBox::Yes) {
         (new RiotApiLoginScreen())->open();
-        disconnect();
+        RiotApi::Instance().disconnect();
         close();
     } else if (resBtn == QMessageBox::Close) {
         event->accept();

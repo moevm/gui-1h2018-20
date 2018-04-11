@@ -5,111 +5,71 @@
 #include <iostream>
 #include <QRegExp>
 #include <functional>
+#include <QTextCodec>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
 
 
-RiotApi::RiotApi() {
+RiotApi::RiotApi(QString url) : Rest(url)
+{
+    fillChampionsList();
+}
+
+void RiotApi::fillChampionsList()
+{
     QUrl url = QUrl("http://ddragon.leagueoflegends.com/cdn/6.24.1/data/en_US/champion.json");
     QNetworkAccessManager* nam = get(url);
     connect(nam, &QNetworkAccessManager::finished, this, [=](QNetworkReply *reply) {
+        QJsonObject champions = QJsonDocument::fromJson(convertToUTF8(reply)).object()["data"].toObject();
 
-        QTextCodec *codec = QTextCodec::codecForName("utf8");
-        QString rawReply = codec->toUnicode(reply->readAll().data());
-        QJsonObject champions = QJsonDocument::fromJson(rawReply.toUtf8()).object()["data"].toObject();
-        for(QJsonObject::iterator start = champions.begin(); start != champions.end(); start++) {
-            QJsonObject champion = (*start).toObject();
+        for (auto start = champions.begin(); start != champions.end(); start++) {
+            QJsonObject champion = start->toObject();
             idToName.insert(champion["key"].toString(), champion["id"].toString());
         }
     });
 }
 
-void RiotApi::setApiKey(const QString &apiKey)
-{
-    riotApi = apiKey;
-}
-
-void RiotApi::replyFinished(QNetworkReply *reply)
-{
-    if (reply->error() == QNetworkReply::NoError) {
-
-    } else {
-        qDebug() << reply->error() << reply->errorString();
-        emit replyError(reply, reply->error(), reply->errorString());
-    }
-}
-
 void RiotApi::requestRecentMatches(QString accountId)
 {
-    QUrl url = QUrl(baseUrl+"/lol/match/v3/matchlists/by-account/"+accountId+"/recent");
-
-    url.setQuery("api_key=" + riotApi);
-
-    QNetworkAccessManager* nam = get(url);
-    connect(nam, &QNetworkAccessManager::finished, this, &RiotApi::recentMatchesFinished);
+    restGet("/lol/match/v3/matchlists/by-account/"+accountId+"/recent", [=](QNetworkReply* reply) {recentMatchesFinished(reply);});
 }
 
 void RiotApi::requestLeagueInfo(QString summonerId)
 {
-    QUrl url = QUrl(baseUrl+"/lol/league/v3/positions/by-summoner/"+summonerId);
-
-    url.setQuery("api_key=" + riotApi);
-
-    QNetworkAccessManager* nam = get(url);
-    connect(nam, &QNetworkAccessManager::finished, this, &RiotApi::leagueInfoFinished);
+    restGet("/lol/league/v3/positions/by-summoner/"+summonerId, [=](QNetworkReply* reply) {leagueInfoFinished(reply);});
 }
 
 void RiotApi::requestSummonerInfo(QString summonerName)
 {
-    QUrl url = QUrl(baseUrl+"/lol/summoner/v3/summoners/by-name/"+summonerName);
-    url.setQuery("api_key=" + riotApi);
-
-    QNetworkAccessManager* nam = get(url);
-    connect(nam, &QNetworkAccessManager::finished, this, &RiotApi::accountInfoFinished);
+    restGet("/lol/summoner/v3/summoners/by-name/"+summonerName, [=](QNetworkReply* reply) {accountInfoFinished(reply);});
 }
 
 const QString RiotApi::getSummonerId() { return accountInfo.summonerId; }
 
 void RiotApi::accountInfoFinished(QNetworkReply *reply)
 {
-    QByteArray content = reply->readAll();
+    QJsonObject accountJson = QJsonDocument::fromJson(convertToUTF8(reply)).object();
 
-    QString rawReply = QTextCodec::codecForName("utf8")->toUnicode(content.data());
-    QJsonObject itemObject = QJsonDocument::fromJson(rawReply.toUtf8()).object();
-    accountInfo = AccountInfo(
-        itemObject["name"].toString(),
-        QString::number(itemObject["id"].toInt()),
-        QString::number(itemObject["accountId"].toInt()),
-        QString::number(itemObject["summonerLevel"].toInt()),
-        QString::number(itemObject["profileIconId"].toInt())
-    );
+    accountInfo = AccountInfo(accountJson);
 
-    emit summonerNameUpdated("<b>"+accountInfo.summonerName+"</b>");
-    emit summonerIdUpdated(accountInfo.summonerId);
-    emit accountIdUpdated(accountInfo.accountId);
-    emit summonerLevelUpdated(accountInfo.summonerLevel);
+    emit summonerNameUpdated         ("<b>"+accountInfo.summonerName+"</b>");
+    emit summonerIdUpdated           (accountInfo.summonerId);
+    emit accountIdUpdated            (accountInfo.accountId);
+    emit summonerLevelUpdated        (accountInfo.summonerLevel);
     emit summonerProfileIconIdUpdated(accountInfo.summonerProfileIconId);
 
     requestLeagueInfo(accountInfo.summonerId);
-
 }
 
 void RiotApi::leagueInfoFinished(QNetworkReply *reply)
 {
-    QByteArray content = reply->readAll();
+    QJsonArray leaguesArray = QJsonDocument::fromJson(convertToUTF8(reply)).array();
 
-    QTextCodec *codec = QTextCodec::codecForName("utf8");
-    QString rawReply = codec->toUnicode(content.data());
-    QJsonArray leaguesArray = QJsonDocument::fromJson(rawReply.toUtf8()).array();
-
-    for(QJsonArray::iterator start = leaguesArray.begin(); start != leaguesArray.end(); start++) {
-        QJsonObject league = (*start).toObject();
+    for (auto start = leaguesArray.begin(); start != leaguesArray.end(); start++) {
+        QJsonObject league = start->toObject();
         if (league["queueType"].toString() == "RANKED_SOLO_5x5") {
-            leagueInfo = LeagueInfo(
-                QString::number(league["wins"].toInt()),
-                QString::number(league["losses"].toInt()),
-                league["tier"].toString(),
-                league["rank"].toString(),
-                QString::number(league["leaguePoints"].toInt())
-            );
+            leagueInfo = LeagueInfo(league);
 
             emit summonerLeagueInfoUpdated(leagueInfo);
             break;
@@ -117,42 +77,35 @@ void RiotApi::leagueInfoFinished(QNetworkReply *reply)
     }
 }
 
+
+void RiotApi::requestMatchInfo(MatchInfo* match)
+{
+    restGet("/lol/match/v3/matches/" + match->gameId, [=](QNetworkReply* reply) {
+        QJsonObject matchJson = QJsonDocument::fromJson(convertToUTF8(reply)).object();
+        match->duration = (matchJson["gameDuration"].toInt() / 60) + 1;
+        match->participantIdentities = matchJson["participantIdentities"].toArray();
+        match->participants = matchJson["participants"].toArray();
+        if (++c == 15) emit lastMatchInfoParsed();
+    });
+}
+
 void RiotApi::recentMatchesFinished(QNetworkReply *reply)
 {
-    QByteArray content = reply->readAll();
-
-    QTextCodec *codec = QTextCodec::codecForName("utf8");
-    QString rawReply = codec->toUnicode(content.data());
-    QJsonArray matchesArray = QJsonDocument::fromJson(rawReply.toUtf8()).object()["matches"].toArray();
     matchesInfo.clear();
+    connect(this, &RiotApi::lastMatchInfoParsed, [=](){ emit recentMatchesUpdated(matchesInfo);});
+    c = 0;
+    QJsonArray matchesArray = QJsonDocument::fromJson(convertToUTF8(reply)).object()["matches"].toArray();
+    int limit = 15;
     for(QJsonArray::iterator start = matchesArray.begin(); start != matchesArray.end(); start++) {
-        QJsonObject match = (*start).toObject();
-        matchesInfo.append(MatchInfo(
-                               idToName[QString::number(match["champion"].toInt())],
-                               QString::number(match["timestamp"].toVariant().toLongLong() / 1000),
-                               static_cast<QueueType>(match["queue"].toInt())
-                           ));
+        QJsonObject matchJson = (*start).toObject();
+        MatchInfo* match = new MatchInfo(
+           QString::number(matchJson["gameId"].toVariant().toLongLong()),
+           idToName[QString::number(matchJson["champion"].toInt())],
+           QString::number(matchJson["timestamp"].toVariant().toLongLong() / 1000),
+           static_cast<QueueType>(matchJson["queue"].toInt()));
+        requestMatchInfo(match);
+        matchesInfo.append(match);
+        if (--limit == 0) break;
     }
-    emit recentMatchesUpdated(matchesInfo);
-}
-
-QNetworkAccessManager* RiotApi::get(QUrl url)
-{
-    QNetworkRequest request = QNetworkRequest(url);
-    QNetworkAccessManager* nam = new QNetworkAccessManager(this);
-    QNetworkReply *reply = nam->get(request);
-    connectReplyToErrors(reply);
-    return nam;
-}
-
-
-void RiotApi::replyError(QNetworkReply::NetworkError error)
-{
-    qDebug() << "Error" << error;
-}
-
-void RiotApi::connectReplyToErrors(QNetworkReply *reply)
-{
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(replyError(QNetworkReply::NetworkError)));
 }
 

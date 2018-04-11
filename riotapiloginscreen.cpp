@@ -2,6 +2,7 @@
 #include "ui_riotapiloginscreen.h"
 #include "mainwindow.h"
 #include "riotapi.h"
+#include <QSettings>
 
 RiotApiLoginScreen::RiotApiLoginScreen(QWidget *parent) :
     QDialog(parent),
@@ -19,8 +20,8 @@ RiotApiLoginScreen::~RiotApiLoginScreen()
 
 void RiotApiLoginScreen::verifyInputAndOpenMainWindow()
 {
-    MainWindow* mw = new MainWindow();
     RiotApi::Instance().setApiKey(ui->lineEdit->text());
+    MainWindow* mw = new MainWindow();
     RiotApi::Instance().requestSummonerInfo(ui->lineEdit_2->text());
     connect(mw, &MainWindow::allContentFinished, [=]() {
         saveSettings();
