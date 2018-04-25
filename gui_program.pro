@@ -34,7 +34,9 @@ SOURCES += \
     filedownloader.cpp \
     matchitem.cpp \
     cachemanager.cpp \
-    rest.cpp
+    rest.cpp \
+    matchform.cpp \
+    infostructs.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -44,9 +46,11 @@ HEADERS += \
     matchitem.h \
     cachemanager.h \
     infostructs.h \
-    rest.h
+    rest.h \
+    matchform.h
 
 FORMS += \
         mainwindow.ui \
     riotapiloginscreen.ui \
-    matchitem.ui
+    matchitem.ui \
+    matchform.ui

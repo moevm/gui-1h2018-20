@@ -15,6 +15,7 @@ private:
 
 protected:
     QString baseUrl;
+    QString server;
     QString apiToken;
 
     Rest(QString url);
@@ -28,6 +29,7 @@ protected:
 
 public:
     void setApiKey(const QString& apiKey);
+    void setServer(const QString& server);
 signals:
     void replyError1(QNetworkReply *reply, QNetworkReply::NetworkError error, QString errorString);
 protected slots:

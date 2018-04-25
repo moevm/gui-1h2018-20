@@ -3,8 +3,10 @@
 #include "string"
 #include "cachemanager.h"
 #include "filedownloader.h"
+#include "matchform.h"
 
 #include <QPainter>
+#include <QWidget>
 MatchItem::MatchItem(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MatchItem)
@@ -13,7 +15,6 @@ MatchItem::MatchItem(QWidget *parent) :
     getAndSetIcon("score", ui->kdaIconLabel);
     getAndSetIcon("gold", ui->goldIconLabel);
     getAndSetIcon("minion", ui->minionsIconLabel);
-
 }
 
 MatchItem::~MatchItem()
@@ -35,6 +36,9 @@ MatchItem *MatchItem::duration(int m)
 
 MatchItem *MatchItem::icon(QPixmap icon)
 {
+    qDebug() << icon;
+    qDebug() << ui;
+    qDebug() << ui->iconLabel;
     ui->iconLabel->setPixmap(icon);
     return this;
 }
@@ -70,6 +74,12 @@ MatchItem *MatchItem::win(bool w)
     return this;
 }
 
+MatchItem *MatchItem::participants(QMap<int, QList<QString>> pcs)
+{
+    this->pcs = pcs;
+    return this;
+}
+
 void MatchItem::getAndSetIcon(QString name, QLabel *label)
 {
     if(CacheManager::Instance().cached(name+".png")) {
@@ -93,4 +103,9 @@ void MatchItem::paintEvent(QPaintEvent *)
     opt.init(this);
     QPainter p(this);
     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+}
+
+void MatchItem::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    (new MatchForm(pcs))->show();
 }

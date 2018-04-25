@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QString>
 #include <QLabel>
+#include <QMap>
 
 namespace Ui {
 class MatchItem;
@@ -23,11 +24,13 @@ public:
     MatchItem* gold(int g);
     MatchItem* minions(int m);
     MatchItem* win(bool w);
+    MatchItem* participants(QMap<int, QList<QString>>);
 private:
     Ui::MatchItem *ui;
-
+    QMap<int, QList<QString>> pcs;
     void getAndSetIcon(QString name, QLabel* label);
     void paintEvent(QPaintEvent *) override;
+    virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
 };
 
 #endif // MATCHITEM_H

@@ -10,7 +10,6 @@ CacheManager::CacheManager() : QObject(nullptr)
     if (!QDir("imgcache").exists()) {
         QDir().mkdir("imgcache");
     } else {
-        //fill set of already cached imgs
         QDirIterator it("imgcache", QDir::Files);
         while (it.hasNext()) {
             it.next();

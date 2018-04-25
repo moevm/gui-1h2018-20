@@ -75,6 +75,7 @@ void MainWindow::fillMatches(const QVector<MatchInfo*>& matches)
 {
     ui->listWidget->clear();
     QString summoner = RiotApi::Instance().getNickname();
+
     for (auto start = matches.begin(); start != matches.end(); start++) {
         QDateTime matchTime;
         matchTime.setTime_t((*start)->timestamp.toLong());
@@ -85,13 +86,15 @@ void MainWindow::fillMatches(const QVector<MatchInfo*>& matches)
                                                   (*start)->getAssists(summoner))
                                             ->gold((*start)->getGold(summoner))
                                             ->minions((*start)->getMinions(summoner))
-                                            ->win((*start)->isWin(summoner));
+                                            ->win((*start)->isWin(summoner))
+                                            ->participants((*start)->getParticipants());
 
         if (CacheManager::Instance().cached((*start)->champion+".png")) {
             QPixmap icon(CacheManager::Instance().getPath((*start)->champion+".png"));
             match->icon(icon.scaled(64, 64, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         } else {
             FileDownloader* downloader = new FileDownloader(QUrl("http://ddragon.leagueoflegends.com/cdn/6.24.1/img/champion/"+(*start)->champion+".png"));
+
             connect(downloader, &FileDownloader::downloaded, [=](){
                 QPixmap icon;
                 icon.loadFromData(downloader->downloadedData());

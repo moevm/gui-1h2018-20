@@ -23,6 +23,15 @@ void Rest::setApiKey(const QString &apiKey)
     apiToken = apiKey;
 }
 
+void Rest::setServer(const QString &server)
+{
+    if (server == "EUW") this->server = "euw1"; else
+    if (server == "EUNE") this->server = "eun1"; else
+    if (server == "NA") this->server = "na1"; else
+    if (server == "BR") this->server = "br1"; else
+    this->server = server;
+}
+
 void Rest::replyFinished(QNetworkReply *reply)
 {
     if (reply->error() == QNetworkReply::NoError) {
@@ -44,7 +53,7 @@ QNetworkAccessManager* Rest::get(QUrl url)
 
 void Rest::restGet(QString url, std::function<void (QNetworkReply*)> action)
 {
-    QUrl fullUrl = QUrl(baseUrl + url);
+    QUrl fullUrl = QUrl("https://" + server + "." + baseUrl + url);
     fullUrl.setQuery("api_key=" + apiToken);
     QNetworkAccessManager* nam = get(fullUrl);
 

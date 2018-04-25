@@ -1,5 +1,9 @@
+#ifndef INFOSTRUCTS_H
+#define INFOSTRUCTS_H
+
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QMap>
 
 enum QueueType {
     SRRankedSolo = 420, SRBlindPick = 430, SRRankedFlex = 440, ARAM = 450
@@ -12,19 +16,9 @@ struct AccountInfo {
     QString summonerLevel;
     QString summonerProfileIconId;
 
-    AccountInfo() {}
-    AccountInfo(QString name, QString sid, QString aid, QString lvl, QString pid) :
-        summonerName(name),
-        summonerId(sid),
-        accountId(aid),
-        summonerLevel(lvl),
-        summonerProfileIconId(pid){}
-    AccountInfo(QJsonObject& accountJson) :
-        summonerName                         (accountJson["name"].toString()),
-        summonerId           (QString::number(accountJson["id"].toInt())),
-        accountId            (QString::number(accountJson["accountId"].toInt())),
-        summonerLevel        (QString::number(accountJson["summonerLevel"].toInt())),
-        summonerProfileIconId(QString::number(accountJson["profileIconId"].toInt())){}
+    AccountInfo();
+    AccountInfo(QString name, QString sid, QString aid, QString lvl, QString pid);
+    AccountInfo(QJsonObject& accountJson);
 };
 
 struct LeagueInfo {
@@ -34,15 +28,9 @@ struct LeagueInfo {
     QString tier;
     QString leaguePoints;
 
-    LeagueInfo() {}
-    LeagueInfo(QString w, QString l, QString r, QString t, QString lp) :
-        wins(w), losses(l), rank(r), tier(t), leaguePoints(lp){}
-    LeagueInfo(QJsonObject league) :
-        wins(QString::number(league["wins"].toInt())),
-        losses(QString::number(league["losses"].toInt())),
-        rank(league["rank"].toString()),
-        tier(league["tier"].toString()),
-        leaguePoints(QString::number(league["leaguePoints"].toInt())){}
+    LeagueInfo();
+    LeagueInfo(QString w, QString l, QString r, QString t, QString lp);
+    LeagueInfo(QJsonObject league);
 };
 
 struct MatchInfo {
@@ -95,4 +83,8 @@ struct MatchInfo {
     bool isWin(QString nickname) const {
         return getStats(nickname)["win"].toBool();
     }
+
+    QMap<int, QList<QString>> getParticipants() const;
 };
+
+#endif

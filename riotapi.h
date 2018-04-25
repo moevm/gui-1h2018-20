@@ -27,12 +27,16 @@ private:
 public:
 
     static RiotApi& Instance() {
-        static RiotApi theSingleInstance("https://ru.api.riotgames.com");
+        static RiotApi theSingleInstance("api.riotgames.com");
         return theSingleInstance;
     }
 
     QString getNickname() {
         return accountInfo.summonerName;
+    }
+
+    QString getChampionName(QString championId) {
+        return idToName[championId];
     }
 
     void requestSummonerInfo(QString summonerName);
