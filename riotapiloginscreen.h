@@ -2,6 +2,7 @@
 #define RIOTAPILOGINSCREEN_H
 
 #include <QDialog>
+#include <QNetworkReply>
 
 namespace Ui {
 class RiotApiLoginScreen;
@@ -18,6 +19,8 @@ public:
 private:
     Ui::RiotApiLoginScreen *ui;
     QString m_sSettingsFile;
+    int err = 0;
+    QString getErrorString(QNetworkReply::NetworkError error);
 private slots:
     void verifyInputAndOpenMainWindow();
     void loadSettings();

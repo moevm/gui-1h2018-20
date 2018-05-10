@@ -49,15 +49,19 @@ struct MatchInfo {
 
     int playerId(QString nickname) const {
         for(int i = 0; i < participantIdentities.size(); i++) {
-            if (QString::compare(participantIdentities[i].toObject()["player"].toObject()["summonerName"].toString(), nickname, Qt::CaseInsensitive)) {
-                return i;
+            if (QString::compare(participantIdentities[i].toObject()["player"].toObject()["summonerName"].toString(),
+                                 nickname, Qt::CaseInsensitive) == 0) {
+                return participantIdentities[i].toObject()["participantId"].toInt();
             };
         }
         return -1;
     }
 
     QJsonObject getStats(QString nickname) const {
-        return participants[playerId(nickname)].toObject()["stats"].toObject();
+        int participantId = playerId(nickname);
+        for(int i = 0; i < participants.size(); i++) {
+            if (participants[i].toObject()["participantId"].toInt() == participantId) return participants[i].toObject()["stats"].toObject();
+        }
     }
 
     int getKills(QString nickname) const {

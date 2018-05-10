@@ -18,7 +18,7 @@ RiotApi::RiotApi(QString url) : Rest(url)
 
 void RiotApi::fillChampionsList()
 {
-    QUrl url = QUrl("http://ddragon.leagueoflegends.com/cdn/8.8.2/data/en_US/champion.json");
+    QUrl url = QUrl("http://ddragon.leagueoflegends.com/cdn/8.9.1/data/en_US/champion.json");
     QNetworkAccessManager* nam = get(url);
     connect(nam, &QNetworkAccessManager::finished, this, [=](QNetworkReply *reply) {
         QJsonObject champions = QJsonDocument::fromJson(convertToUTF8(reply)).object()["data"].toObject();
@@ -32,7 +32,7 @@ void RiotApi::fillChampionsList()
 
 void RiotApi::requestRecentMatches(QString accountId)
 {
-    restGet("/lol/match/v3/matchlists/by-account/"+accountId+"/recent", [=](QNetworkReply* reply) {recentMatchesFinished(reply);});
+    restGet("/lol/match/v3/matchlists/by-account/"+accountId, [=](QNetworkReply* reply) {recentMatchesFinished(reply);});
 }
 
 void RiotApi::requestLeagueInfo(QString summonerId)

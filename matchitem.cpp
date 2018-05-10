@@ -86,7 +86,7 @@ void MatchItem::getAndSetIcon(QString name, QLabel *label)
         QPixmap img(CacheManager::Instance().getPath(name+".png"));
         label->setPixmap(img);
     } else {
-        QUrl url("http://ddragon.leagueoflegends.com/cdn/5.5.1/img/ui/" + name + ".png");
+        QUrl url("http://ddragon.leagueoflegends.com/cdn/8.9.1/img/ui/" + name + ".png");
         FileDownloader* fd = new FileDownloader(url);
         connect(fd, &FileDownloader::downloaded, [=]() {
             QPixmap img;

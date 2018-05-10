@@ -42,6 +42,12 @@ QMap<int, QList<QString>> MatchInfo::getParticipants() const {
                 .append(RiotApi::Instance()
                         .getChampionName(QString::number(participant["championId"].toInt())));
 
+        QJsonObject stats = participants[i].toObject()["stats"].toObject();
+
+        result[participant["participantId"].toInt()].append(QString::number(stats["kills"].toInt()));
+        result[participant["participantId"].toInt()].append(QString::number(stats["deaths"].toInt()));
+        result[participant["participantId"].toInt()].append(QString::number(stats["assists"].toInt()));
+
     }
     return result;
 }

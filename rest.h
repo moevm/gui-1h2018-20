@@ -31,8 +31,8 @@ public:
     void setApiKey(const QString& apiKey);
     void setServer(const QString& server);
 signals:
-    void replyError1(QNetworkReply *reply, QNetworkReply::NetworkError error, QString errorString);
-protected slots:
+    void replyErrorSig(QNetworkReply::NetworkError error);
+public slots:
     void replyFinished(QNetworkReply *reply);
     void replyError(QNetworkReply::NetworkError error);
 };

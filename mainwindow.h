@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "filedownloader.h"
+#include "matchitem.h"
 #include "riotapi.h"
 
 namespace Ui {
@@ -25,7 +26,11 @@ private:
     FileDownloader* iconDownloader;
 
     QPixmap roundImage(QPixmap& img);
+    MatchItem* createMatchItem(QString summoner, MatchInfo* match);
+    QPixmap scaleIcon(QPixmap icon, int size);
 private slots:
+    void profileIconDownloadAndSet(const QString& iconId);
+    void setLeagueInfo(LeagueInfo& info);
     void openLoginScreen();
     void fillMatches(const QVector<MatchInfo*>&);
 signals:

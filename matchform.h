@@ -1,6 +1,7 @@
 #ifndef MATCHFORM_H
 #define MATCHFORM_H
 
+#include <QLabel>
 #include <QWidget>
 
 namespace Ui {
@@ -17,6 +18,8 @@ public:
 
 private:
     Ui::MatchForm *ui;
+
+    void getAndSetIcon(QString name, QLabel *label);
 };
 
 #endif // MATCHFORM_H

@@ -124,8 +124,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>LEAGUE
-W/L</string>
+        <string>UNRANKED</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignHCenter|Qt::AlignTop</set>

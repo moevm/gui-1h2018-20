@@ -38,7 +38,6 @@ void Rest::replyFinished(QNetworkReply *reply)
 
     } else {
         qDebug() << reply->error() << reply->errorString();
-//        emit replyError1(reply, reply->error(), reply->errorString());
     }
 }
 
@@ -64,6 +63,7 @@ void Rest::restGet(QString url, std::function<void (QNetworkReply*)> action)
 void Rest::replyError(QNetworkReply::NetworkError error)
 {
     qDebug() << "Error" << error;
+    emit replyErrorSig(error);
 }
 
 void Rest::connectReplyToErrors(QNetworkReply *reply)

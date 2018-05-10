@@ -2,7 +2,9 @@
 #include "ui_riotapiloginscreen.h"
 #include "mainwindow.h"
 #include "riotapi.h"
+#include <QMessageBox>
 #include <QSettings>
+#include <QTimer>
 
 RiotApiLoginScreen::RiotApiLoginScreen(QWidget *parent) :
     QDialog(parent),
@@ -18,16 +20,44 @@ RiotApiLoginScreen::~RiotApiLoginScreen()
     delete ui;
 }
 
+QString RiotApiLoginScreen::getErrorString(QNetworkReply::NetworkError error)
+{
+    switch (error) {
+        case QNetworkReply::ContentAccessDenied:
+            return "Riot API key is expired\n or just invalid";
+        case QNetworkReply::ContentNotFoundError:
+            return "Wrong nickname";
+        default:
+            return "unknown error";
+    }
+}
+
 void RiotApiLoginScreen::verifyInputAndOpenMainWindow()
 {
-    RiotApi::Instance().setApiKey(ui->lineEdit->text());
-    RiotApi::Instance().setServer(ui->serverComboBox->currentText());
+    RiotApi& riotApi = RiotApi::Instance();
+    riotApi.setApiKey(ui->lineEdit->text());
+    riotApi.setServer(ui->serverComboBox->currentText());
     MainWindow* mw = new MainWindow();
-    RiotApi::Instance().requestSummonerInfo(ui->lineEdit_2->text());
+    riotApi.requestSummonerInfo(ui->lineEdit_2->text());
+
+    err = 0;
+    connect(&riotApi, &RiotApi::replyErrorSig, [=](QNetworkReply::NetworkError error) {
+        err = error;
+        if (err != 0) {
+            QMessageBox* window = new QMessageBox;
+            window->resize(320, 240);
+            window->setWindowTitle("Error");
+            window->setText(getErrorString(error));
+            window->show();
+        }
+    });
     connect(mw, &MainWindow::allContentFinished, [=]() {
-        saveSettings();
-        mw->show();
-        close();
+        if (err == 0) {
+            saveSettings();
+            mw->show();
+            close();
+        }
+        disconnect(mw, 0, 0, 0);
     });
 }
 
